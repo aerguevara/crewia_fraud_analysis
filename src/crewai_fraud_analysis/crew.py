@@ -139,19 +139,23 @@ class CrewaiFraudAnalysis():
 
     @crew
     def crew(self) -> Crew:
-        """Creates the CrewaiFraudAnalysis crew (Versión completa para reportes)"""
+        """Versión de reportes horários (Jerárquica)"""
         return Crew(
-            agents=[self.adventure_streak_orchestrator(), self.user_data_specialist()],
+            agents=[self.user_data_specialist()],
             tasks=[self.manage_user_queries_task(), self.handle_user_request_task()],
-            process=Process.sequential,
+            process=Process.hierarchical,
+            manager_agent=self.adventure_streak_orchestrator(),
+            manager_llm=gemini_llm,
             verbose=True,
         )
 
     def crew_for_chat(self) -> Crew:
-        """Versión de chat: Orquestador al mando con poder de delegación."""
+        """Versión de chat: Jerarquía clara para que la delegación funcione."""
         return Crew(
-            agents=[self.adventure_streak_orchestrator(), self.user_data_specialist()],
+            agents=[self.user_data_specialist()],
             tasks=[self.handle_user_request_task()],
-            process=Process.sequential,
+            process=Process.hierarchical,
+            manager_agent=self.adventure_streak_orchestrator(),
+            manager_llm=gemini_llm,
             verbose=True,
         )
