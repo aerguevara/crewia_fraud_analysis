@@ -1,32 +1,29 @@
-fetch_daily_workouts_task:
+handle_user_request_task:
   description: >
-    Fetch all workout activities from Firestore that were completed within the last 24 hours. 
-    Retrieve the main activity data and the precomputed route_metrics (which includes average speed based on total duration and GPS jump counts).
+    Mensaje actual del usuario: '{user_input}'
+    Historial de la conversación: {chat_history}
+    
+    INSTRUCCIONES PASO A PASO:
+    1. ANALIZA el 'Mensaje actual' y el 'Historial' para entender el contexto.
+    2. CLASIFICA la intención:
+       - Si es charla general (saludos, despedidas, agradecimientos): Responde directamente basándote en tu personalidad de administrador.
+       - Si el usuario pide datos (buscar un perfil, ver usuarios nuevos, estadísticas): DEBES delegar la tarea de búsqueda a tu compañero 'User Data Specialist'.
+    3. SÍNTESIS (Si delegaste): Una vez que el 'User Data Specialist' te devuelva los datos, léelos y redacta una respuesta clara y amigable para el usuario. Si el especialista dice que no hay datos, infórmale eso al usuario sin inventar nada.
   expected_output: >
-    A structured list of workouts, including activityId, userId, userName, distance, duration, route_metrics, activityType, startDate, endDate, and locationLabel.
-  agent: workout_speed_analyst
+    La respuesta final directa para el usuario. 
+    REGLA ESTRICTA: Debe ser un mensaje de texto plano, natural, en español. 
+    PROHIBIDO usar formato JSON, diccionarios de Python, o etiquetas como <respuesta>. Escribe como en un chat.
+  agent: adventure_streak_orchestrator
 
-analyze_workout_patterns_task:
+manage_user_queries_task:
   description: >
-    Analyze the fetched workouts and route_metrics for signs of fraud. 
-    1. Check if the average speed in the route_metrics is realistic for the activity type.
-    2. Identify any GPS "jumps" (e.g. if gps_jumps_over_300m > 0).
-    3. Verify if territories were assigned logically, given the points or distance.
+    Has recibido una solicitud del Orchestrator para buscar datos en Firestore.
+    
+    INSTRUCCIONES:
+    1. Identifica qué parámetros necesitas usar en tu 'UserSearchTool' (por ejemplo: un término de búsqueda 'search_query' o si necesitas listar usuarios nuevos 'list_new_users=True').
+    2. Ejecuta la herramienta con los parámetros exactos.
+    3. Analiza el resultado crudo devuelto por la herramienta.
   expected_output: >
-    A detailed list of findings for each workout, flagging any suspicious behavior with evidence 
-    (e.g., "User travelled 5km in 2 minutes, average speed 150km/h, 2 GPS jumps detected").
-  agent: spatial_integrity_auditor
-
-generate_fraud_report_task:
-  description: >
-    Take the findings from the analysts and generate a consolidated Daily Fraud Report. 
-    Group sessions by: "Confirmed Fraud", "Suspicious (Needs Review)", and "Clean".
-    Explain the reasoning for each flag.
-    For each reported activity, you MUST explicitly include the following data points:
-    - User ID y Nombre (from `userId` and `userName`)
-    - Hora (from `startDate` and `endDate`)
-    - Actividad (from `activityType`)
-    - Smartplace (from `locationLabel`)
-  expected_output: >
-    A markdown report summarizing the daily fraud audit. The entire report MUST be written in Spanish.
-  agent: fraud_reporting_officer
+    Un reporte técnico estructurado (pueden ser viñetas) con los datos encontrados.
+    REGLA DE ERROR: Si la herramienta devuelve un error, una lista vacía o no encuentra coincidencias, tu output EXACTO debe ser: "Búsqueda completada: No se encontraron usuarios en Firestore con esos parámetros." NO inventes datos para rellenar.
+  agent: user_data_specialist
